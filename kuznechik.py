@@ -16,6 +16,7 @@ class kuznechik():
     """ Реализация блочного шифра кузнечик ГОСТ Р 34.12-2015
         Для шифрования вызывается метод encrypt
         Для дешифрования вызывается метод decrypt"""
+
     def __init__(self, key):
         """ Args:
                 key: str с 256 битный ключом
@@ -33,7 +34,7 @@ class kuznechik():
                    29, 247, 48, 55, 107, 228, 136, 217, 231, 137, 225, 27, 131, 73, 76, 63, 248, 254, 141, 83, 170, 144,
                    202, 216, 133, 97, 32, 113, 103, 164, 45, 43, 9, 91, 203, 155, 37, 208, 190, 229, 108, 82, 89, 166,
                    116, 210, 230, 244, 180, 192, 209, 102, 175, 194, 57, 75, 99, 182)
-        
+
         # сразу посчитаем обратное преобразование для PI
         self.PI_INV = list(self.PI)
         for i in range(256):
@@ -45,25 +46,26 @@ class kuznechik():
         f.close()
 
         # Константы С для разветки ключа
-        self.C = [self.l_transform([0]*15+[i]) for i in range(1,33)]
+        self.C = [self.l_transform([0] * 15 + [i]) for i in range(1, 33)]
 
         # проверим что правильно генерит
-        assert self.C[0] == [110, 162, 118, 114, 108, 72, 122, 184, 93, 39, 189, 16, 221, 132, 148, 1],'что-то идет не работает'
+        assert self.C[0] == [110, 162, 118, 114, 108, 72, 122, 184, 93, 39, 189, 16, 221, 132, 148, 1]
 
-        #генерим развертку ключа
+        # генерим развертку ключа
         self.roundkey = [key[:16], key[16:]]
         self.roundkey = self.roundkey + self.keyschedule(self.roundkey)
 
     def add_field(self, x, y):
         """суммирование в поле x^8 + x^7 + x^6 + x + 1"""
         return x ^ y
-    
+
     def sum_field(self, x):
         """Сумма всех элементов x"""
         s = 0
         for a in x:
             s ^= a
         return s
+
     def mult_field(self, x, y):
         """Перемножение в поле x^8 + x^7 + x^6 + x + 1 """
         p = 0
@@ -81,7 +83,6 @@ class kuznechik():
         """XOR бинарных строк x и k"""
         return [x[i] ^ k[i] for i in range(len(k))]
 
-
     def s_transform(self, x):
         """Замена каждого байта x согласно таблице PI"""
         return [self.PI[x[i]] for i in range(len(x))]
@@ -98,12 +99,11 @@ class kuznechik():
 
     def r_transform(self, x):
         """R transform"""
-        return [self.l(x), ]+x[:-1]
+        return [self.l(x), ] + x[:-1]
 
     def r_inv_transform(self, x):
         """Inverse R transformation"""
-        return x[1:] + [self.l(x[1:] + [x[0], ]),]
-
+        return x[1:] + [self.l(x[1:] + [x[0], ]), ]
 
     def l_transform(self, x):
         """Последовательное выполнение R transform 16 раз"""
@@ -111,7 +111,6 @@ class kuznechik():
             x = self.r_transform(x)
         return x
 
-    
     def l_inv_transform(self, x):
         """Inverse L transformation"""
         for i in range(len(x)):
@@ -131,7 +130,7 @@ class kuznechik():
         roundkeys = []
         for i in range(4):
             for k in range(8):
-                roundkey = self.f_transform(self.C[8*i+k], roundkey)
+                roundkey = self.f_transform(self.C[8 * i + k], roundkey)
             roundkeys.append(roundkey[0])
             roundkeys.append(roundkey[1])
         return roundkeys
@@ -161,4 +160,4 @@ class kuznechik():
             c = self.s_inv_transform(c)
         c = self.x_transform(c, self.roundkey[0])
         return binascii.hexlify(bytearray(c))
-        #return c 
+        # return c
